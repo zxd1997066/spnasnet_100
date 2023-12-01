@@ -130,6 +130,10 @@ parser.add_argument("--weight-sharing", action='store_true', default=False,
                     help="using weight_sharing to test the performance of inference")
 parser.add_argument("--instances", default=0, type=int,
                     help="the instance numbers for test the performance of latcy, only works when enable weight-sharing")
+parser.add_argument("--compile", action='store_true', default=False,
+                    help="enable torch.compile")
+parser.add_argument("--backend", type=str, default='inductor',
+                    help="enable torch.compile backend")
 
 args = parser.parse_args()
 # set quantized engine
@@ -397,6 +401,8 @@ def main_worker(gpu, ngpus_per_node, args):
             model = model.to(memory_format=torch.channels_last)
             sample_input = sample_input.contiguous(memory_format=torch.channels_last)
             print("Use NHWC model.")
+        if args.compile:
+            model = torch.compile(model, backend=args.backend, options={"freezing": True})
         # inc int8
         if args.precision == "inc_int8":
             from neural_compressor.experimental import Quantization, common
