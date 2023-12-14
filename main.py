@@ -187,10 +187,10 @@ def main():
     else:
         # Simply call main_worker function
         if args.precision == "bfloat16":
-            with torch.cpu.amp.autocast(enabled=True, dtype=torch.bfloat16):
+            with torch.autocast(device_type="cuda" if torch.cuda.is_available() else "cpu", enabled=True, dtype=torch.bfloat16):
                 main_worker(args.gpu, ngpus_per_node, args)
         elif args.precision == "float16":
-            with torch.cpu.amp.autocast(enabled=True, dtype=torch.half):
+            with torch.autocast(device_type="cuda" if torch.cuda.is_available() else "cpu", enabled=True, dtype=torch.half):
                 main_worker(args.gpu, ngpus_per_node, args)
         else:
             main_worker(args.gpu, ngpus_per_node, args)
@@ -560,7 +560,7 @@ def run_weights_sharing_model(model, images, args):
     time_consume = 0
     with torch.no_grad():
         if args.precision == "bfloat16":
-            with torch.cpu.amp.autocast(enabled=True, dtype=torch.bfloat16):
+            with torch.autocast(device_type="cuda" if torch.cuda.is_available() else "cpu", enabled=True, dtype=torch.bfloat16):
                 for i in range(args.iterations + args.warmup_iterations):
                     start_time = time.time()
                     output = model(images)
@@ -570,7 +570,7 @@ def run_weights_sharing_model(model, images, args):
                         time_consume += (end_time - start_time)
                         num_images += args.batch_size
         elif args.precision == "float16":
-            with torch.cpu.amp.autocast(enabled=True, dtype=torch.half):
+            with torch.autocast(device_type="cuda" if torch.cuda.is_available() else "cpu", enabled=True, dtype=torch.half):
                 for i in range(args.iterations + args.warmup_iterations):
                     start_time = time.time()
                     output = model(images)
@@ -609,14 +609,14 @@ def validate(val_loader, model, criterion, args):
             input = torch.rand(args.batch_size, 3, args.image_size, args.image_size)
             if args.precision == "bfloat16":
                 import torch.fx.experimental.optimization as optimization
-                with torch.cpu.amp.autocast(cache_enabled=False):
+                with torch.autocast(device_type="cuda" if torch.cuda.is_available() else "cpu", cache_enabled=False):
                     model = model.eval()
                     model = optimization.fuse(model)
                     model = torch.jit.trace(model, input)
                     #model = torch.jit.freeze(model)
             elif args.precision == "float16":
                 import torch.fx.experimental.optimization as optimization
-                with torch.cpu.amp.autocast(cache_enabled=False):
+                with torch.autocast(device_type="cuda" if torch.cuda.is_available() else "cpu", cache_enabled=False):
                     model = model.eval()
                     model = optimization.fuse(model)
                     model = torch.jit.trace(model, input)
