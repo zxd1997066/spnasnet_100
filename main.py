@@ -152,6 +152,8 @@ def main():
     print(args)
 
     args.cuda = torch.cuda.is_available()
+    if args.cuda:
+        args.gpu = 0
 
     if args.seed is not None:
         random.seed(args.seed)
@@ -642,10 +644,9 @@ def validate(val_loader, model, criterion, args):
                     thread.join()
                 exit()
             else:
-                if args.gpu is not None and args.cuda:
-                    images = images.cuda(args.gpu, non_blocking=True)
                 if args.cuda:
-                    target = target.cuda(args.gpu, non_blocking=True)
+                    images = images.cuda(non_blocking=True)
+                    target = target.cuda(non_blocking=True)
                 if args.channels_last:
                     images = images.contiguous(memory_format=torch.channels_last)
                 # compute output
@@ -720,10 +721,9 @@ def validate(val_loader, model, criterion, args):
                     on_trace_ready=trace_handler,
                 ) as p:
                     for i, (images, target) in enumerate(val_loader):
-                        if args.gpu is not None and args.cuda:
-                            images = images.cuda(args.gpu, non_blocking=True)
                         if args.cuda:
-                            target = target.cuda(args.gpu, non_blocking=True)
+                            images = images.cuda(non_blocking=True)
+                            target = target.cuda(non_blocking=True)
 
                         # compute output
                         start = time.time()
@@ -745,10 +745,9 @@ def validate(val_loader, model, criterion, args):
             elif args.enable_sampler:
                 from ptsampler import Sampler
                 for i, (images, target) in enumerate(val_loader):
-                    if args.gpu is not None and args.cuda:
-                        images = images.cuda(args.gpu, non_blocking=True)
                     if args.cuda:
-                        target = target.cuda(args.gpu, non_blocking=True)
+                        images = images.cuda(non_blocking=True)
+                        target = target.cuda(non_blocking=True)
                     if args.channels_last:
                         images = images.contiguous(memory_format=torch.channels_last)
                     # compute output
@@ -785,10 +784,9 @@ def validate(val_loader, model, criterion, args):
                     top5.update(acc5[0], images.size(0))
             else:
                 for i, (images, target) in enumerate(val_loader):
-                    if args.gpu is not None and args.cuda:
-                        images = images.cuda(args.gpu, non_blocking=True)
                     if args.cuda:
-                        target = target.cuda(args.gpu, non_blocking=True)
+                        images = images.cuda(non_blocking=True)
+                        target = target.cuda(non_blocking=True)
                     if args.channels_last:
                         images = images.contiguous(memory_format=torch.channels_last)
                     # compute output
