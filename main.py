@@ -151,7 +151,7 @@ def main():
     args = parser.parse_args()
     print(args)
 
-    args.cuda = not args.no_cuda and torch.cuda.is_available()
+    args.cuda = torch.cuda.is_available()
 
     if args.seed is not None:
         random.seed(args.seed)
